@@ -15,6 +15,14 @@ on:
                 required: true
                 description: The handler name
 
+        secrets:
+            aws_access_key_id:
+                required: true
+            aws_secret_access_key:
+                required: true
+            aws_region:
+                required: true
+
 jobs:
   deploy_zip:
     name: Deploy Lambda function
