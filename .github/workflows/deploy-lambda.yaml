@@ -1,0 +1,42 @@
+name: Deploy to lambda
+on:
+    workflow_call:
+        inputs:
+            src_dir:
+                type: string
+                required: true
+                description: The folder that contains the source code
+            function_name:
+                type: string
+                required: true
+                description: The AWS function name
+            handler:
+                type: string
+                required: true
+                description: The handler name
+
+jobs:
+  deploy_zip:
+    name: Deploy Lambda function
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Zip code
+        run: |
+          mkdir dependencies
+          pip install -r requirements.txt --target ${{ inputs.src_dir }}
+          cd ${{ inputs.src_dir }}
+          zip -r ${{ github.workspace }}/deploy.zip .
+          cd ${{ github.workspace }}
+
+      - name: Deploy
+        uses: appleboy/lambda-action@v0.1.9
+        with:
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          handler: handler.handler
+          function_name: binance_trades
+          zip_file: deploy.zip
