@@ -2,10 +2,6 @@ name: Deploy to lambda
 on:
     workflow_call:
         inputs:
-            src_dir:
-                type: string
-                required: true
-                description: The folder that contains the source code
             function_name:
                 type: string
                 required: true
@@ -31,13 +27,18 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      - name: Package dependencies
+        run: |
+          mkdir package
+          pip install -r requirements.txt --target ./package
+
       - name: Zip code
         run: |
-          mkdir dependencies
-          pip install -r requirements.txt --target ${{ inputs.src_dir }}
-          cd ${{ inputs.src_dir }}
-          zip -r ${{ github.workspace }}/deploy.zip .
-          cd ${{ github.workspace }}
+          cp ./handler.py ./package
+          cp ./src ./package
+          cd ./package
+          zip -r ../deploy.zip .
+          cd ..
 
       - name: Deploy
         uses: appleboy/lambda-action@v0.1.9
